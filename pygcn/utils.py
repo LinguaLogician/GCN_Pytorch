@@ -78,3 +78,21 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     values = torch.from_numpy(sparse_mx.data)
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
+
+
+def batch_adj_matrix(adj_matrix_list: torch.Tensor) -> torch.Tensor:
+    '''
+    :param adj_matrix_list: shape (batch_size, side_square, side_square)
+    :return: a torch.Tensor with matrix belong his diagonal
+    in order to support batches it is necessary
+    to create a matrix that will contain all the adjacency matrices in a batch along its diagonal.
+    '''
+    dimension = adj_matrix_list.shape
+    batch_size = dimension[0]
+    side_of_the_square = dimension[2]
+    side_batch_matrix = side_of_the_square * batch_size
+    res_batch_matrix = torch.zeros((side_batch_matrix, side_batch_matrix))
+    for batch_num in range(batch_size):
+        res_batch_matrix[side_of_the_square * batch_num:side_of_the_square + (batch_num * side_of_the_square), side_of_the_square * batch_num:side_of_the_square + (batch_num * side_of_the_square)] = adj_matrix_list[batch_num]
+
+    return res_batch_matrix
