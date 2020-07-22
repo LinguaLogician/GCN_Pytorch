@@ -83,8 +83,7 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
 def batch_adj_matrix(adj_matrix_list: torch.Tensor) -> torch.Tensor:
     '''
     :param adj_matrix_list: shape (batch_size, side_square, side_square)
-    :return: a torch.Tensor with matrix belong his diagonal
-    in order to support batches it is necessary
+    :return: a torch.Tensor, in order to support batches it is necessary
     to create a matrix that will contain all the adjacency matrices in a batch along its diagonal.
     '''
     dimension = adj_matrix_list.shape
