@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.sparse as sp
 import torch
+from scipy.linalg import fractional_matrix_power as matrix_frac_power
 
 
 def encode_onehot(labels):
@@ -12,7 +13,7 @@ def encode_onehot(labels):
     return labels_onehot
 
 
-def load_data(path="../data/cora/", dataset="cora"):
+def load_data(path="../data/cora/", dataset="cora", symm_norm = False):
     """Load citation network dataset (cora only for now)"""
     print('Loading {} dataset...'.format(dataset))
 
@@ -32,12 +33,19 @@ def load_data(path="../data/cora/", dataset="cora"):
                         shape=(labels.shape[0], labels.shape[0]),
                         dtype=np.float32)
 
-    # build symmetric adjacency matrix
-    adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj)
-
+    if not symm_norm:
+        # use the D^-1A formula
+        adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj)
+        adj = normalize(adj + sp.eye(adj.shape[0]))
+    else:
+        # use the D^-1/2AD^-1/2 formula
+        adj = adj + sp.eye(adj.shape[0]) # add self loop
+        D = np.diag(np.array(adj.sum(axis=0)).flatten()) # build degree matrix
+        D_prime = matrix_frac_power(D,-0.5)
+        D_prime = sp.coo_matrix(D_prime, shape=(adj.shape[0],adj.shape[0]),dtype=np.float32) # convert to sparse format
+        adj = D_prime @ adj @ D_prime # compute the normalized symmetric version
+     
     features = normalize(features)
-    adj = normalize(adj + sp.eye(adj.shape[0]))
-
     idx_train = range(140)
     idx_val = range(200, 500)
     idx_test = range(500, 1500)
