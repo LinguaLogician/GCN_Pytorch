@@ -40,7 +40,7 @@ def load_data(path="../data/cora/", dataset="cora", symm_norm = False):
     else:
         # use the D^-1/2AD^-1/2 formula
         adj = adj + sp.eye(adj.shape[0]) # add self loop
-        D = np.diag(np.array(adj.sum(axis=0)).flatten()) # build degree matrix
+        D = np.diag(np.array(adj.sum(axis=1)).flatten()) # build degree matrix
         D_prime = matrix_frac_power(D,-0.5)
         D_prime = sp.coo_matrix(D_prime, shape=(adj.shape[0],adj.shape[0]),dtype=np.float32) # convert to sparse format
         adj = D_prime @ adj @ D_prime # compute the normalized symmetric version
